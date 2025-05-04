@@ -1,0 +1,370 @@
+<!-- START OF FILE views/dashboard.ejs (Single File Version with Top Notification Bell) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Optional: Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Optional: Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <title><%= typeof title !== 'undefined' ? title : 'Dashboard' %></title>
+
+    <!-- ****** EMBEDDED CSS START ****** -->
+    <style>
+        /* --- General Styles & Variables --- */
+        :root {
+            --primary-color: #4a90e2; /* A nice blue */
+            --secondary-color: #50e3c2; /* A contrasting teal/mint */
+            --background-color: #f8f9fa; /* Light grey background */
+            --card-background: #ffffff; /* White cards */
+            --text-color: #333;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+            --success-color: #28a745; /* Green */
+            --danger-color: #dc3545; /* Red */
+            --warning-color: #ffc107; /* Yellow */
+            --info-color: #17a2b8;    /* Cyan */
+            --border-radius: 8px; /* Softer corners */
+            --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+
+             /* Notification Bar Variables (If you were using the top bar) */
+             /* --notification-info-bg: #cce5ff; ... etc */
+        }
+         body.dark-mode { /* Example dark mode vars if needed */
+             --background-color: #1a1a1a;
+             --card-background: #2c2c2c;
+             --text-color: #e0e0e0;
+             --text-muted: #a0a0a0;
+             --border-color: #444;
+             --input-bg: #333;
+             --input-border: #555;
+             --input-text: #eee;
+         }
+
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Nicer font */
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0; /* Remove default body margin */
+            min-height: 100vh;
+             transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* --- Notification Bell Styles --- */
+        .notification-bell-area {
+            position: fixed; /* Keeps it fixed relative to the viewport */
+            top: 1.5rem;     /* Adjust vertical position */
+            right: 2rem;    /* Adjust horizontal position */
+            z-index: 1010;  /* Ensure it's above most content */
+            cursor: pointer;
+        }
+        .notification-bell-icon {
+            font-size: 1.5rem; /* Size of the bell */
+            color: var(--text-muted);
+            position: relative; /* Needed for positioning the badge */
+            display: inline-block;
+            transition: color 0.2s ease;
+        }
+        .notification-bell-icon:hover {
+            color: var(--text-color);
+        }
+        .notification-badge {
+            position: absolute; top: -5px; right: -8px;
+            background-color: var(--danger-color); color: white; border-radius: 50%;
+            width: 18px; height: 18px; font-size: 0.7rem; font-weight: bold;
+            display: none; /* Hidden by default - shown via JS */
+            align-items: center; justify-content: center; line-height: 1;
+            border: 1px solid var(--card-background);
+        }
+        body.dark-mode .notification-badge { border-color: var(--card-background); }
+        .notification-badge.show { display: inline-flex; }
+
+        /* --- Notification Dropdown Styles --- */
+        .notification-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0;
+            width: 320px; max-height: 400px; overflow-y: auto;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color); border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15); z-index: 1009;
+            display: none; /* Hidden by default */
+            animation: fadeInDropdown 0.2s ease-out;
+             transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .notification-dropdown.show { display: block; }
+        @keyframes fadeInDropdown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .notification-dropdown-header {
+            padding: 0.75rem 1rem; font-weight: bold; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.95em;
+             color: var(--text-color);
+        }
+         .notification-dropdown-header a { font-size: 0.85em; font-weight: normal; }
+
+        .notification-list { list-style: none; padding: 0; margin: 0; }
+        .notification-item {
+            padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);
+            font-size: 0.9em; line-height: 1.4; transition: background-color 0.2s ease;
+            cursor: pointer; color: var(--text-color);
+        }
+        .notification-item:last-child { border-bottom: none; }
+        .notification-item:hover { background-color: #f1f3f5; }
+        body.dark-mode .notification-item:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .notification-item.unread { background-color: rgba(74, 144, 226, 0.08); font-weight: 500; }
+         body.dark-mode .notification-item.unread { background-color: rgba(74, 144, 226, 0.15); }
+        .notification-item .timestamp { display: block; font-size: 0.8em; color: var(--text-muted); margin-top: 0.25rem; }
+        .no-notifications { padding: 1.5rem; text-align: center; color: var(--text-muted); font-style: italic; }
+         .no-notifications.error { color: var(--danger-color); font-style: normal; }
+
+
+        /* --- Container & Existing Dashboard Styles --- */
+        .container { max-width: 1100px; margin: 2rem auto; padding: 1.5rem; flex-grow: 1; }
+        h1, h2, h3 { color: var(--text-color); margin-bottom: 1rem; }
+        h1 { font-size: 2.2em; font-weight: 600; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem; margin-bottom: 2rem; display: flex; align-items: center; }
+        h1 i { margin-right: 0.75rem; color: var(--primary-color); }
+        h2 { font-size: 1.8em; font-weight: 500; margin-top: 2.5rem; display: flex; align-items: center; }
+        h2 i { margin-right: 0.6rem; font-size: 0.9em; color: var(--text-muted); }
+        h3 { font-size: 1.1em; font-weight: 600; margin-bottom: 0.75rem; }
+        .stat-card h3 { margin-top: 0; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.95em; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; }
+        .stat-card h3 i { margin-right: 0.4rem; font-size: 0.9em; }
+        .stat-card h3 i.fa-list-check { color: var(--primary-color); }
+        .stat-card h3 i.fa-check-circle { color: var(--success-color); }
+        .stat-card h3 i.fa-hourglass-half { color: var(--warning-color); }
+        .stat-card h3 i.fa-calendar-check { color: var(--info-color); } /* Changed to info */
+        a { color: var(--primary-color); text-decoration: none; transition: color 0.2s ease-in-out; }
+        a:hover { color: #357ABD; text-decoration: underline; }
+        .alert { padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid transparent; border-radius: var(--border-radius); box-shadow: var(--box-shadow); opacity: 1; transition: opacity 0.5s ease-out 4.5s; }
+        .alert[style*="opacity: 0"] { display: none; }
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+         body.dark-mode .alert-danger { background-color: #5a1a1f; color: #f5c6cb; border-color: #f5c6cb;}
+         body.dark-mode .alert-success { background-color: #1d4a2f; color: #c3e6cb; border-color: #c3e6cb;}
+        .stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+        .stat-card { background-color: var(--card-background); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 1.5rem; text-align: center; box-shadow: var(--box-shadow); transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.3s ease; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--box-shadow-hover); }
+        .stat-card p { font-size: 2.4em; font-weight: 600; margin: 0.5rem 0 0 0; color: var(--primary-color); line-height: 1.1; }
+        .stat-card:nth-child(2) p { color: var(--success-color); }
+        .stat-card:nth-child(3) p { color: var(--warning-color); }
+        .stat-card:nth-child(4) p { color: var(--info-color); } /* Changed to info */
+        .stat-card p span { display: block; font-size: 0.5em; font-weight: 400; color: var(--text-muted); margin-top: 0.3rem; }
+        .upcoming-tasks { background-color: var(--card-background); border-radius: var(--border-radius); padding: 1.5rem; box-shadow: var(--box-shadow); margin-bottom: 2.5rem; transition: background-color 0.3s ease; }
+        .task-list { list-style: none; padding: 0; margin: 0; }
+        .task-list li { border-bottom: 1px solid var(--border-color); padding: 1rem 0.5rem; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.2s ease-in-out, border-color 0.3s ease; }
+        .task-list li:last-child { border-bottom: none; }
+        .task-list li:hover { background-color: rgba(0,0,0,0.02); }
+         body.dark-mode .task-list li:hover { background-color: rgba(255,255,255,0.04); }
+        .task-title { font-weight: 500; margin-right: 1rem; color: var(--text-color); }
+        .task-due { font-size: 0.9em; color: var(--text-muted); background-color: var(--background-color); padding: 0.2rem 0.6rem; border-radius: 4px; white-space: nowrap; transition: background-color 0.3s ease; }
+        .no-tasks-message { color: var(--text-muted); font-style: italic; padding: 1.5rem 0; text-align: center; font-size: 1.1em; }
+        .chart-container { background-color: var(--card-background); border-radius: var(--border-radius); padding: 1.5rem; box-shadow: var(--box-shadow); margin-bottom: 2.5rem; min-height: 350px; position: relative; transition: background-color 0.3s ease; }
+        #completionChart { max-height: 300px; }
+        .dashboard-nav { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; transition: border-color 0.3s ease;}
+        .dashboard-nav a, .logout-link { display: inline-flex; align-items: center; padding: 0.6rem 1.2rem; background-color: var(--primary-color); color: white; border: none; border-radius: var(--border-radius); text-decoration: none; font-weight: 500; transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .dashboard-nav a i, .logout-link i { margin-right: 0.5rem; }
+        .dashboard-nav a:hover, .logout-link:hover { background-color: #357ABD; text-decoration: none; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+        .logout-link { background-color: var(--danger-color); }
+        .logout-link:hover { background-color: #c82333; }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) { .container { margin: 1rem auto; padding: 1rem; } h1 { font-size: 1.8em; } h2 { font-size: 1.5em; } .stats-summary { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; } .stat-card { padding: 1rem; min-height: 120px; } .stat-card p { font-size: 2em; } .task-list li { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 0.8rem 0.2rem; } .task-title { margin-right: 0; } .task-due { margin-left: 0; } .dashboard-nav { gap: 0.8rem; justify-content: space-around; } .dashboard-nav a, .logout-link { padding: 0.5rem 1rem; font-size: 0.9em; } .notification-bell-area { top: 1rem; right: 1rem; } .notification-dropdown { width: 280px; } }
+        @media (max-width: 480px) { h1 { font-size: 1.6em; } h2 { font-size: 1.3em; } .stats-summary { grid-template-columns: 1fr; } .stat-card { min-height: auto; } .dashboard-nav { flex-direction: column; align-items: stretch; } .dashboard-nav a, .logout-link { text-align: center; justify-content: center; } }
+
+    </style>
+    <!-- ****** EMBEDDED CSS END ****** -->
+
+</head>
+<body class="<%= locals.theme === 'dark' ? 'dark-mode' : '' %>" data-user-id="<%= locals.currentUser ? currentUser._id : '' %>">
+
+    <!-- Optional: Include header partial -->
+    <!-- <%# include('./partials/header') %> -->
+
+    <div class="container">
+
+        <!-- Notification Bell HTML -->
+        <div class="notification-bell-area" id="notificationBellArea" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-controls="notificationDropdown">
+            <span class="notification-bell-icon">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationBadge">0</span>
+            </span>
+            <div class="notification-dropdown" id="notificationDropdown" aria-hidden="true">
+                <div class="notification-dropdown-header">
+                    <span>Notifications</span>
+                    <a href="#" id="markAllReadBtn">Mark all as read</a>
+                </div>
+                <ul class="notification-list" id="notificationList">
+                    <li class="no-notifications">Loading notifications...</li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Notification Bell HTML -->
+
+
+        <h1><i class="fas fa-tachometer-alt"></i> Your Productivity Dashboard</h1>
+
+         <% if (locals.error_msg && error_msg.length > 0) { %><div class="alert alert-danger" role="alert"><%= error_msg %></div><% } %>
+         <% if (locals.success_msg && success_msg.length > 0) { %><div class="alert alert-success" role="alert"><%= success_msg %></div><% } %>
+
+         <div class="stats-summary">
+             <div class="stat-card"><h3><i class="fas fa-list-check"></i> Total Tasks</h3><p><%= stats.total %></p></div>
+             <div class="stat-card"><h3><i class="fas fa-check-circle"></i> Completed</h3><p><%= stats.completed %> <% if(stats.total > 0) { %><span>(<%= stats.completionRate %>%)</span><% } %></p></div>
+             <div class="stat-card"><h3><i class="fas fa-hourglass-half"></i> Pending</h3><p><%= stats.pending %></p></div>
+             <div class="stat-card"><h3><i class="fas fa-calendar-check"></i> Completed Today</h3><p><%= stats.todayCompleted %></p></div>
+         </div>
+
+         <div class="chart-container"><h2><i class="fas fa-chart-line"></i> Task Completion Trend</h2><canvas id="completionChart"></canvas></div>
+
+         <div class="upcoming-tasks">
+             <h2><i class="fas fa-calendar-alt"></i> Upcoming Tasks (Next 7 Days)</h2>
+             <% if (upcomingTasks && upcomingTasks.length > 0) { %>
+                 <ul class="task-list">
+                     <% upcomingTasks.forEach(task => { %>
+                         <li>
+                             <span class="task-title"><%= task.title %></span>
+                             <% if (task.dueDate) { %>
+                                 <span class="task-due">Due: <%= new Date(task.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></span>
+                             <% } else { %>
+                                 <span class="task-due">No due date</span>
+                             <% } %>
+                         </li>
+                     <% }); %>
+                 </ul>
+             <% } else { %><p class="no-tasks-message">🎉 No upcoming tasks in the next 7 days!</p><% } %>
+         </div>
+
+         <div class="dashboard-nav">
+             <a href="/tasks"><i class="fas fa-tasks"></i> View All Tasks</a>
+             <a href="/projects"><i class="fas fa-project-diagram"></i> View Projects</a>
+             <a href="/profile"><i class="fas fa-user-cog"></i> My Profile</a> 
+             <a href="/auth/logout" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+         </div>
+
+    </div> <!-- End container -->
+
+    <!-- Scripts -->
+     <script>
+         document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Notification Bell Logic ---
+            const bellArea = document.getElementById('notificationBellArea');
+            const dropdown = document.getElementById('notificationDropdown');
+            const badge = document.getElementById('notificationBadge');
+            const notificationList = document.getElementById('notificationList');
+            const markAllReadBtn = document.getElementById('markAllReadBtn');
+
+            let isDropdownOpen = false;
+            let notifications = [];
+            let unreadCount = 0;
+
+            const toggleDropdown = (event) => {
+                event.stopPropagation();
+                isDropdownOpen = !isDropdownOpen;
+                dropdown.classList.toggle('show', isDropdownOpen);
+                bellArea.setAttribute('aria-expanded', isDropdownOpen);
+                dropdown.setAttribute('aria-hidden', !isDropdownOpen);
+                if (isDropdownOpen) { console.log("Dropdown opened"); }
+            };
+
+            const closeDropdown = () => {
+                if (isDropdownOpen) {
+                    isDropdownOpen = false;
+                    dropdown.classList.remove('show');
+                    bellArea.setAttribute('aria-expanded', 'false');
+                    dropdown.setAttribute('aria-hidden', 'true');
+                    console.log("Dropdown closed");
+                }
+            };
+
+            const updateBadge = (count) => {
+                unreadCount = count;
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.classList.toggle('show', count > 0);
+            };
+
+            const renderNotifications = (items) => {
+                notificationList.innerHTML = '';
+                if (!items || items.length === 0) {
+                    notificationList.innerHTML = '<li class="no-notifications">No new notifications.</li>';
+                    updateBadge(0);
+                    return;
+                }
+                let currentUnreadCount = 0;
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.classList.add('notification-item');
+                    li.dataset.id = item.id;
+                    if (item.unread) { li.classList.add('unread'); currentUnreadCount++; }
+                    li.innerHTML = `${item.message || 'Notification content missing.'}${item.timestamp ? `<span class="timestamp">${formatTimeAgo(item.timestamp)}</span>` : ''}`;
+                    li.addEventListener('click', () => handleNotificationClick(item.id));
+                    notificationList.appendChild(li);
+                });
+                updateBadge(currentUnreadCount);
+            };
+
+             const fetchNotifications = async () => {
+                console.log("Fetching notifications...");
+                try {
+                    // --- REPLACE WITH ACTUAL FETCH ---
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    const mockNotifications = [
+                        { id: 'n1', message: 'Project "Apollo" deadline approaching.', timestamp: new Date(Date.now() - 2 * 60 * 1000), unread: true },
+                        { id: 'n2', message: 'Task "Review Designs" was completed.', timestamp: new Date(Date.now() - 15 * 60 * 1000), unread: true },
+                        { id: 'n3', message: 'You were mentioned in comments on task "Budget Planning".', timestamp: new Date(Date.now() - 65 * 60 * 1000), unread: false },
+                         { id: 'n4', message: 'System update scheduled for tomorrow.', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), unread: true },
+                    ];
+                    notifications = mockNotifications;
+                    renderNotifications(notifications);
+                } catch (error) {
+                    console.error("Error fetching notifications:", error);
+                    notificationList.innerHTML = '<li class="no-notifications error">Could not load notifications.</li>';
+                    updateBadge(0);
+                }
+            };
+
+            const handleNotificationClick = (notificationId) => {
+                console.log(`Clicked notification ID: ${notificationId}`);
+                const itemElement = notificationList.querySelector(`.notification-item[data-id="${notificationId}"]`);
+                if (itemElement?.classList.contains('unread')) {
+                     itemElement.classList.remove('unread');
+                     updateBadge(unreadCount - 1);
+                     // TODO: API call: fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+                }
+                // TODO: Navigate if applicable
+                closeDropdown();
+            };
+
+            const handleMarkAllRead = async (event) => {
+                event.preventDefault();
+                console.log("Marking all as read...");
+                // TODO: API call: fetch('/api/notifications/read-all', { method: 'POST' });
+                 notifications.forEach(n => n.unread = false);
+                 notificationList.querySelectorAll('.notification-item.unread').forEach(el => el.classList.remove('unread'));
+                 updateBadge(0);
+            };
+
+             const formatTimeAgo = (timestamp) => {
+                 const now = new Date(); const past = new Date(timestamp); const diffInSeconds = Math.floor((now - past) / 1000); const diffInMinutes = Math.floor(diffInSeconds / 60); const diffInHours = Math.floor(diffInMinutes / 60); const diffInDays = Math.floor(diffInHours / 24);
+                 if (diffInSeconds < 60) return `${diffInSeconds}s ago`; if (diffInMinutes < 60) return `${diffInMinutes}m ago`; if (diffInHours < 24) return `${diffInHours}h ago`; if (diffInDays === 1) return `Yesterday`; return `${diffInDays}d ago`;
+             };
+
+            if (bellArea) { bellArea.addEventListener('click', toggleDropdown); bellArea.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDropdown(e); } }); }
+            if (markAllReadBtn) { markAllReadBtn.addEventListener('click', handleMarkAllRead); }
+            document.addEventListener('click', (event) => { if (isDropdownOpen && !bellArea.contains(event.target) && !dropdown.contains(event.target)) { closeDropdown(); } });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isDropdownOpen) { closeDropdown(); } });
+
+            fetchNotifications(); // Initial Fetch
+
+
+            // --- Chart Logic (Keep as is) ---
+            const ctx = document.getElementById('completionChart');
+            if (ctx && typeof Chart !== 'undefined') { /* ... (Chart logic as before) ... */ const backendChartData = { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], completedCounts: [2, 5, 3, 6, 4, 7, 5] }; const style = getComputedStyle(document.documentElement); const primaryColor = style.getPropertyValue('--primary-color').trim() || '#4a90e2'; const hexToRgba = (hex, alpha = 0.2) => { let r=0,g=0,b=0;if(hex.match(/^#([A-Fa-f0-9]{3}){1,2}$/)){let c=hex.substring(1).split('');if(c.length==3){c=[c[0],c[0],c[1],c[1],c[2],c[2]];}c='0x'+c.join('');r=(c>>16)&255;g=(c>>8)&255;b=c&255;return `rgba(${r},${g},${b},${alpha})`;}if(hex==='blue')return `rgba(0,0,255,${alpha})`;return `rgba(74, 144, 226, ${alpha})`; }; const primaryBgColor = hexToRgba(primaryColor, 0.2); const chartData = { labels: backendChartData.labels, datasets: [{ label: 'Tasks Completed', data: backendChartData.completedCounts, borderColor: primaryColor, backgroundColor: primaryBgColor, borderWidth: 2, tension: 0.4, fill: true, pointBackgroundColor: primaryColor, pointRadius: 4, pointHoverRadius: 6 }] }; const config = { type: 'line', data: chartData, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, x: { grid: { display: false } } }, plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 20 } }, tooltip: { mode: 'index', intersect: false, bodySpacing: 4, padding: 10 } }, hover: { mode: 'nearest', intersect: true } } }; try { new Chart(ctx.getContext('2d'), config); } catch (e) { console.error("Error creating chart:", e); } }
+
+            // --- Alert Fade Out Logic (Keep as is) ---
+             setTimeout(() => { document.querySelectorAll('.alert').forEach(alert => { alert.style.opacity = '0'; alert.addEventListener('transitionend', () => { if (alert.style.opacity === '0') { alert.style.display = 'none'; } }, { once: true }); }); }, 5000);
+
+         }); // End DOMContentLoaded
+     </script>
+</body>
+</html>
+<!-- END OF FILE views/dashboard.ejs -->

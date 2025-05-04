@@ -1,0 +1,448 @@
+<!-- START OF FILE views/tasks/index.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Link to your main CSS -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- Link to specific task JS -->
+    <script src="/js/tasks.js" defer></script>
+    <!-- Link to theme switcher JS -->
+    <script src="/js/theme.js" defer></script>
+    <!-- Link to Socket.IO client library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Link to notification handling JS -->
+    <script src="/js/notifications.js" defer></script>
+
+    <title><%= typeof title !== 'undefined' ? title : 'My Tasks' %></title>
+    <style>
+        /* --- Base Enhancements & Variables --- */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #ffc107; /* Medium Priority */
+            --orange-color: #fd7e14;  /* High Priority */
+            --info-color: #17a2b8;    /* Low Priority (Adjust if needed) */
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --text-muted: #6c757d;
+            --body-bg: #f8f9fa; /* Lighter background */
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 10px rgba(0,0,0,0.07);
+            --shadow-lg: 0 5px 20px rgba(0,0,0,0.1);
+            --border-radius-sm: 0.25rem; /* 4px */
+            --border-radius-md: 0.375rem; /* 6px */
+            --border-radius-lg: 0.5rem;  /* 8px */
+        }
+
+        body.dark-mode {
+             --primary-color: #4dabf7; /* Lighter blue for dark mode */
+             --secondary-color: #adb5bd;
+             --danger-color: #ff8787;
+             --success-color: #69db7c;
+             --warning-color: #ffd43b;
+             --orange-color: #ffc078;
+             --info-color: #66d9e8;
+             --border-color: #495057;
+             --card-bg: #424242;
+             --text-color: #e9ecef;
+             --text-muted: #adb5bd;
+             --body-bg: #303030;
+             --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+             --shadow-md: 0 4px 10px rgba(0,0,0,0.25);
+             --shadow-lg: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--body-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-size: 16px; /* Base font size */
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 2.5rem auto; /* Increased top/bottom margin */
+            padding: 2rem 2.5rem; /* Increased padding */
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius-lg); /* Larger radius */
+            box-shadow: var(--shadow-md);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 2rem; /* More space below title */
+            color: var(--primary-color);
+            text-align: center;
+            font-weight: 600; /* Slightly bolder */
+            letter-spacing: -0.5px;
+        }
+
+        /* --- Header Section --- */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem; /* Increased spacing */
+            padding-bottom: 1.5rem; /* Increased padding */
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* --- Enhanced Theme Toggle Switch --- */
+        .theme-switch { display: flex; align-items: center; gap: 0.75rem; /* More space */ }
+        .theme-switch span { font-size: 0.9em; color: var(--text-muted); }
+        .switch { position: relative; display: inline-block; width: 50px; /* Width */ height: 26px; /* Height */}
+        .switch input { opacity: 0; width: 0; height: 0; } /* Hide default checkbox */
+        .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 26px; /* Fully rounded */
+        }
+        .slider:before { /* The toggle knob */
+            position: absolute; content: "";
+            height: 20px; /* Knob height */ width: 20px; /* Knob width */
+            left: 3px; /* Initial position */ bottom: 3px; /* Position from bottom */
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%; /* Circle */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:focus + .slider { box-shadow: 0 0 1px var(--primary-color); } /* Subtle focus */
+        input:checked + .slider:before {
+            transform: translateX(24px); /* Move knob to the right (width - knob_width - 2*left_offset) */
+            /* Optional: Change knob color in dark mode */
+            /* background-color: var(--dark-color); */
+        }
+        /* Optional: Add Sun/Moon icons (requires careful positioning/styling) */
+        /* .slider::after { content: '☀️'; position: absolute; left: 5px; top: 3px; font-size: 0.8em; } */
+        /* input:checked + .slider::after { content: '🌙'; left: auto; right: 5px; } */
+
+
+        /* --- Flash Messages --- */
+        .alert { padding: 1rem 1.25rem; margin-bottom: 1.5rem; border: 1px solid transparent; border-radius: var(--border-radius-md); opacity: 1; font-size: 0.95em;}
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        body.dark-mode .alert-danger { color: #f8d7da; background-color: #721c24; border-color: #f5c6cb; }
+        body.dark-mode .alert-success { color: #d4edda; background-color: #155724; border-color: #c3e6cb; }
+
+        /* --- Controls Area --- */
+        .controls-area {
+            background-color: rgba(128, 128, 128, 0.05); /* Even more subtle background */
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2.5rem; /* More space below controls */
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--border-color);
+        }
+        .task-filters { display: flex; flex-wrap: wrap; gap: 1.5rem; /* Increased gap */ align-items: center; margin-bottom: 1.5rem; }
+        .task-filters > div { display: flex; align-items: center; gap: 0.5rem; } /* Group label/select */
+        .task-filters label { margin-bottom: 0; font-weight: 500; color: var(--text-muted); font-size: 0.9em; }
+        .task-filters select {
+            padding: 0.5rem 0.9rem; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background-color: var(--card-bg); color: var(--text-color); flex-grow: 1; min-width: 140px; font-size: 0.95em;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .task-filters select:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 0, 123, 255), 0.25); /* Use RGB version if defined */ }
+
+
+        /* --- Add Task Form --- */
+        .task-form { display: flex; gap: 0.75rem; }
+        #task-title {
+            flex-grow: 1; padding: 0.7rem 1rem; /* Slightly more padding */ border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); font-size: 1rem; background-color: var(--card-bg); color: var(--text-color);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        #task-title::placeholder { color: var(--text-muted); opacity: 0.7; }
+        #task-title:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 0, 123, 255), 0.25); }
+        .task-form button {
+            padding: 0.7rem 1.4rem; background-color: var(--primary-color); color: white; border: none; border-radius: var(--border-radius-sm); cursor: pointer; font-weight: 500; font-size: 1rem; transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .task-form button:hover { background-color: #0056b3; transform: translateY(-1px); } /* Darker shade + subtle lift */
+        body.dark-mode .task-form button:hover { background-color: #1e90ff; }
+
+
+        /* --- Task List & Cards --- */
+        .task-list { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+        .task-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-left-width: 4px; /* Make space for priority border */
+            border-left-color: transparent; /* Default transparent */
+            border-radius: var(--border-radius-md);
+            padding: 1rem 1.25rem;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.25s ease, transform 0.2s ease, border-left-color 0.3s ease, opacity 0.3s ease;
+            position: relative;
+            overflow: hidden; /* Ensure border doesn't cause layout shifts */
+        }
+        /* Priority Border Colors */
+        .task-card[data-priority="low"] { border-left-color: var(--info-color); }
+        .task-card[data-priority="medium"] { border-left-color: var(--warning-color); }
+        .task-card[data-priority="high"] { border-left-color: var(--orange-color); }
+        .task-card[data-priority="critical"] { border-left-color: var(--danger-color); }
+
+        .task-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-3px) scale(1.01); /* Slightly more pronounced lift */
+        }
+        .task-card:focus-visible { /* Style focus state for keyboard navigation */
+             outline: 2px solid var(--primary-color);
+             outline-offset: 2px;
+             box-shadow: var(--shadow-md);
+             transform: translateY(-3px) scale(1.01);
+        }
+
+        .task-card[data-completed="true"] {
+             opacity: 0.65; /* Dim slightly more */
+             background-color: rgba(128, 128, 128, 0.05); /* Subtle grey out */
+             border-left-color: var(--secondary-color); /* Grey priority border when done */
+        }
+        body.dark-mode .task-card[data-completed="true"] {
+              background-color: rgba(0, 0, 0, 0.2);
+              border-left-color: var(--secondary-color);
+              opacity: 0.6;
+        }
+        .task-card[data-completed="true"] h3 {
+             text-decoration: line-through;
+             color: var(--text-muted);
+        }
+
+        .task-header {
+            display: flex; align-items: flex-start; /* Align items top */ gap: 0.75rem; margin-bottom: 0.5rem; /* Reduced margin */ padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border-color);
+        }
+        .task-header h3 { margin: 0; font-size: 1.1em; font-weight: 600; flex-grow: 1; color: var(--text-color); transition: color 0.3s ease, text-decoration 0.3s ease; line-height: 1.4; /* Ensure consistent line height */ }
+        .task-complete { margin-top: 0.2rem; /* Align checkbox better with text */ margin-right: 0.5rem; width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-color); flex-shrink: 0; }
+        .priority-badge { display: none; /* Hide original badge, using border now */ }
+        /* If you still want the badge, uncomment and style */
+        /* .priority-badge { font-size: 0.7em; padding: 0.2em 0.6em; border-radius: 10px; color: white; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; align-self: center; } */
+        /* ...badge color styles... */
+
+        .task-description { margin-top: 0.5rem; margin-bottom: 0.75rem; color: var(--text-muted); font-size: 0.95em; line-height: 1.5; }
+        .task-due { font-size: 0.85em; color: var(--text-muted); margin-bottom: 1rem; font-style: italic; }
+        .task-due::before { content: "Due: "; font-style: normal; font-weight: 500; }
+
+        .task-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
+        /* --- Buttons Refinement --- */
+        .btn { padding: 0.4rem 0.9rem; cursor: pointer; border: 1px solid transparent; /* Add border for consistency */ border-radius: var(--border-radius-sm); text-decoration: none; display: inline-block; font-size: 0.9em; font-weight: 500; transition: opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px);}
+        .btn:active { transform: translateY(0); } /* Press down effect */
+        .btn-primary { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .btn-secondary { background-color: var(--secondary-color); color: white; border-color: var(--secondary-color); }
+        .btn-danger { background-color: var(--danger-color); color: white; border-color: var(--danger-color); }
+        .btn-secondary:hover { background-color: #5a6268; border-color: #545b62; } /* Darken secondary */
+        .btn-danger:hover { background-color: #c82333; border-color: #bd2130; }   /* Darken danger */
+        /* Outline style for secondary/edit */
+        .btn.btn-secondary { background-color: transparent; color: var(--secondary-color); border-color: var(--secondary-color);}
+        .btn.btn-secondary:hover { background-color: var(--secondary-color); color: white; }
+        body.dark-mode .btn.btn-secondary { color: var(--secondary-color); border-color: var(--secondary-color); }
+        body.dark-mode .btn.btn-secondary:hover { background-color: var(--secondary-color); color: var(--dark-color); }
+
+        .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.8em; }
+
+        /* --- Notification Toast --- */
+        .notification-toast { position: fixed; bottom: 25px; right: 25px; background-color: var(--dark-color); color: var(--light-color); padding: 14px 22px; border-radius: var(--border-radius-md); display: none; z-index: 1050; box-shadow: var(--shadow-lg); font-size: 0.95em; }
+        body.dark-mode .notification-toast { background-color: var(--light-color); color: var(--dark-color); }
+        .notification-toast.show { display: block; animation: fadeInToast 0.4s ease forwards; }
+        @keyframes fadeInToast { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Modal Enhancements --- */
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.65); /* Slightly darker overlay */ padding-top: 50px; backdrop-filter: blur(4px); /* Slightly more blur */ }
+        .modal-content { background-color: var(--card-bg); color: var(--text-color); margin: 5% auto; padding: 30px 35px; border: none; width: 90%; max-width: 550px; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-lg); position: relative; animation: scaleInModal 0.3s ease-out forwards; }
+        @keyframes scaleInModal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        .modal-content h2 { margin-top: 0; margin-bottom: 1.8rem; color: var(--primary-color); text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; font-weight: 600; }
+        .close-modal-btn { /* Improved Close Button */
+            color: var(--text-muted); position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: bold; cursor: pointer; background: transparent; border: none; border-radius: 50%; transition: background-color 0.2s ease, color 0.2s ease; line-height: 1; padding: 0;
+        }
+        .close-modal-btn:hover, .close-modal-btn:focus { color: var(--danger-color); background-color: rgba(var(--danger-color-rgb, 220, 53, 69), 0.1); /* Use RGB if defined */ text-decoration: none; outline: none; }
+
+        /* Modal Form Styling */
+        #edit-task-form .form-group { margin-bottom: 1.5rem; }
+        #edit-task-form label { display: block; margin-bottom: 0.6rem; font-weight: 500; color: var(--text-muted); font-size: 0.9em; }
+        #edit-task-form input[type="text"], #edit-task-form input[type="date"], #edit-task-form select, #edit-task-description {
+            width: 100%; padding: 0.7rem 1rem; font-size: 1rem; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); box-sizing: border-box; background-color: var(--card-bg); color: var(--text-color); transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        #edit-task-form input:focus, #edit-task-form select:focus, #edit-task-description:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 0, 123, 255), 0.25); }
+        #edit-task-description { resize: vertical; min-height: 90px; }
+
+        .modal-actions { margin-top: 2rem; text-align: right; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 0.75rem; /* Added gap */ }
+        .modal-actions button { min-width: 110px; /* Ensure buttons have decent width */ }
+        /* Ensure Cancel button inside modal actions also uses .close-modal-btn class for JS */
+        .modal-actions .btn.btn-secondary.close-modal-btn { /* Make Cancel look like secondary */
+            background-color: transparent; color: var(--secondary-color); border-color: var(--secondary-color);
+            font-size: 0.9em; font-weight: 500; line-height: initial; position: static; padding: 0.6rem 1.2rem; /* Adjust padding */
+        }
+        .modal-actions .btn.btn-secondary.close-modal-btn:hover { background-color: var(--secondary-color); color: white; }
+        body.dark-mode .modal-actions .btn.btn-secondary.close-modal-btn { color: var(--secondary-color); border-color: var(--secondary-color); }
+        body.dark-mode .modal-actions .btn.btn-secondary.close-modal-btn:hover { background-color: var(--secondary-color); color: var(--dark-color); }
+
+
+        /* --- Footer Link --- */
+        .footer-link { text-align: center; margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+        .footer-link a { color: var(--primary-color); text-decoration: none; font-weight: 500; transition: color 0.2s ease; }
+        .footer-link a:hover { color: #0056b3; text-decoration: underline; }
+        body.dark-mode .footer-link a:hover { color: #80bdff; }
+
+        /* --- Accessibility Helper --- */
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+
+    </style>
+</head>
+<body data-user-id="<%= currentUser ? currentUser._id : '' %>" class=""> <!-- Add 'dark-mode' class via JS -->
+
+    <div class="container">
+
+        <header class="header-section">
+            <h1><%= typeof title !== 'undefined' ? title : 'My Tasks' %></h1>
+            <div class="theme-switch">
+                 <!-- Labels removed for cleaner look, toggle is self-explanatory -->
+                 <label class="switch">
+                     <input type="checkbox" id="theme-toggle">
+                     <span class="slider round"></span>
+                 </label>
+             </div>
+        </header>
+
+         <!-- Display Flash Messages -->
+        <% if (locals.error_msg && error_msg.length > 0) { %>
+            <div class="alert alert-danger" role="alert"><%= error_msg %></div>
+        <% } %>
+        <% if (locals.success_msg && success_msg.length > 0) { %>
+            <div class="alert alert-success" role="alert"><%= success_msg %></div>
+        <% } %>
+
+        <!-- Task Controls Area -->
+        <section class="controls-area" aria-labelledby="controls-heading">
+             <h2 id="controls-heading" class="sr-only">Task Controls</h2>
+             <div class="task-filters">
+                 <div>
+                     <label for="sort-by">Sort By:</label>
+                     <select id="sort-by">
+                         <option value="dueDate">Due Date</option>
+                         <option value="priority">Priority</option>
+                         <option value="createdAt">Created At</option>
+                     </select>
+                 </div>
+                 <div>
+                     <label for="filter-by">Filter By:</label>
+                     <select id="filter-by">
+                         <option value="all">All Tasks</option>
+                         <option value="today">Due Today</option>
+                         <option value="week">Due This Week</option>
+                         <option value="completed">Completed</option>
+                         <option value="pending">Pending</option>
+                     </select>
+                 </div>
+             </div>
+
+             <form class="task-form" aria-label="Add new task">
+                 <label for="task-title" class="sr-only">New task title</label>
+                 <input type="text" id="task-title" placeholder="Add a new task..." required>
+                 <button type="submit">Add Task</button>
+             </form>
+        </section>
+
+
+        <!-- Task List -->
+        <section class="task-list" aria-live="polite">
+            <% if (tasks && tasks.length > 0) { %>
+                <% tasks.forEach(task => { %>
+                    <!-- Added data-priority and data-completed directly for CSS targeting -->
+                    <article class="task-card" data-id="<%= task._id %>" data-priority="<%= task.priority %>" data-completed="<%= task.completed %>" tabindex="0">
+                        <div class="task-header">
+                            <label class="sr-only" for="complete-<%= task._id %>">Mark task <%= task.title %> as complete</label>
+                            <input type="checkbox" id="complete-<%= task._id %>" class="task-complete" <%= task.completed ? 'checked' : '' %> title="Mark as complete/incomplete">
+                            <h3><%= task.title %></h3>
+                             <!-- Priority badge hidden by default via CSS, priority shown via border -->
+                             <span class="priority-badge <%= task.priority %>"><%= task.priority %></span>
+                        </div>
+                        <% if (task.description && task.description.trim() !== '') { %>
+                            <p class="task-description"><%= task.description %></p>
+                        <% } %>
+                         <% if (task.dueDate) { %>
+                             <div class="task-due"><%= new Date(task.dueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) %></div>
+                         <% } %>
+                        <div class="task-actions">
+                             <!-- Edit button uses secondary outline style now -->
+                            <button class="edit-task btn btn-secondary btn-sm" aria-label="Edit task <%= task.title %>">Edit</button>
+                            <button class="delete-task btn btn-danger btn-sm" aria-label="Delete task <%= task.title %>">Delete</button>
+                        </div>
+                    </article>
+                <% }); %>
+            <% } else { %>
+                <p style="text-align: center; color: var(--text-muted); padding: 2rem 0;">No tasks found. Add one above!</p> <!-- Centered 'no tasks' message -->
+            <% } %>
+        </section>
+
+        <!-- Notification Area (for Socket.IO) -->
+        <div id="notification-toast" class="notification-toast" role="status" aria-live="assertive"></div>
+
+         <footer class="footer-link">
+             <p><a href="/dashboard">Back to Dashboard</a></p>
+         </footer>
+
+    </div> <!-- End container -->
+
+
+    <!-- ========================= -->
+    <!-- === EDIT TASK MODAL === -->
+    <!-- ========================= -->
+    <div id="edit-task-modal" class="modal" role="dialog" aria-labelledby="edit-task-modal-title" aria-hidden="true">
+        <div class="modal-content">
+             <button class="close-modal-btn" aria-label="Close edit task dialog">×</button>
+            <h2 id="edit-task-modal-title">Edit Task</h2>
+            <form id="edit-task-form">
+                <input type="hidden" id="edit-task-id" name="taskId">
+
+                <div class="form-group">
+                    <label for="edit-task-title">Title</label>
+                    <input type="text" id="edit-task-title" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-task-description">Description</label>
+                    <textarea id="edit-task-description" name="description" rows="4"></textarea>
+                </div>
+
+                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                     <div class="form-group" style="flex: 1; min-width: 150px;">
+                         <label for="edit-task-dueDate">Due Date</label>
+                         <input type="date" id="edit-task-dueDate" name="dueDate">
+                     </div>
+                     <div class="form-group" style="flex: 1; min-width: 150px;">
+                         <label for="edit-task-priority">Priority</label>
+                         <select id="edit-task-priority" name="priority">
+                             <option value="low">Low</option>
+                             <option value="medium">Medium</option>
+                             <option value="high">High</option>
+                             <option value="critical">Critical</option>
+                         </select>
+                     </div>
+                 </div>
+
+                <div class="modal-actions">
+                    <button type="submit" id="edit-task-save" class="btn btn-primary">Save Changes</button>
+                    <!-- Ensure this button has 'close-modal-btn' class for JS hook -->
+                    <button type="button" class="close-modal-btn btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- ========================= -->
+    <!-- === END EDIT TASK MODAL === -->
+    <!-- ========================= -->
+
+</body>
+</html>
+<!-- END OF FILE views/tasks/index.ejs -->

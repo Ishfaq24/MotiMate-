@@ -1,0 +1,21 @@
+<!-- START OF FILE views/error/404.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+    <title><%= typeof title !== 'undefined' ? title : 'Not Found' %></title>
+</head>
+<body>
+    <div class="container">
+        <h1>404 - Page Not Found</h1>
+        <p><%= typeof message !== 'undefined' ? message : 'Sorry, the page you requested could not be found.' %></p>
+        <p><a href="/">Go to Homepage</a></p>
+         <% if (currentUser) { %>
+             <p><a href="/dashboard">Go to Dashboard</a></p>
+         <% } %>
+    </div>
+</body>
+</html>
+<!-- END OF FILE views/error/404.ejs -->

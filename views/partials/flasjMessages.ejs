@@ -1,0 +1,43 @@
+<!-- START OF FILE views/partials/flashMessages.ejs -->
+<%# This partial displays flash messages (error, success, info) if they exist. %>
+<%# It assumes messages are passed from the route via connect-flash or similar, %>
+<%# available as `messages.error`, `messages.success`, `messages.info` (arrays). %>
+
+<% if (typeof messages !== 'undefined' && (
+      (messages.error && messages.error.length > 0) ||
+      (messages.success && messages.success.length > 0) ||
+      (messages.info && messages.info.length > 0)
+   )) { %>
+
+    <% /* Display Error Messages */ %>
+    <% if (messages.error && messages.error.length > 0) { %>
+      <div class="alert alert-danger" role="alert">
+        <button type="button" class="close-alert-btn" onclick="this.parentElement.style.display='none';" aria-label="Close">×</button>
+        <% messages.error.forEach(function(message) { %>
+          <div><%= message %></div>
+        <% }); %>
+      </div>
+    <% } %>
+
+    <% /* Display Success Messages */ %>
+    <% if (messages.success && messages.success.length > 0) { %>
+      <div class="alert alert-success" role="alert">
+        <button type="button" class="close-alert-btn" onclick="this.parentElement.style.display='none';" aria-label="Close">×</button>
+        <% messages.success.forEach(function(message) { %>
+          <div><%= message %></div>
+        <% }); %>
+      </div>
+    <% } %>
+
+    <% /* Display Info Messages (Optional) */ %>
+    <% if (messages.info && messages.info.length > 0) { %>
+      <div class="alert alert-info" role="alert"> <%# Adjust styling class if needed in styles.css %>
+        <button type="button" class="close-alert-btn" onclick="this.parentElement.style.display='none';" aria-label="Close">×</button>
+        <% messages.info.forEach(function(message) { %>
+          <div><%= message %></div>
+        <% }); %>
+      </div>
+    <% } %>
+
+<% } %>
+<!-- END OF FILE views/partials/flashMessages.ejs -->

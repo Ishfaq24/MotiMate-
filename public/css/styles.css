@@ -1,0 +1,157 @@
+/* --- Add this to your /public/css/styles.css --- */
+
+/* Reusing variables from previous examples */
+:root {
+    --primary-color: #4a90e2;
+    --background-color: #f8f9fa;
+    --card-background: #ffffff;
+    --text-color: #333;
+    --text-muted: #6c757d;
+    --border-color: #dee2e6;
+    --header-bg: var(--card-background); /* Or a distinct color like #343a40 */
+    --header-text: var(--primary-color); /* Or white if header-bg is dark */
+    --header-border: var(--border-color);
+    --border-radius: 8px;
+    --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* General Button Styles (If not already defined globally) */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0.5rem 1rem; border: 1px solid transparent;
+    border-radius: var(--border-radius); font-weight: 500;
+    text-decoration: none; cursor: pointer; transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); white-space: nowrap;
+}
+.btn-sm { padding: 0.3rem 0.8rem; font-size: 0.85em; }
+.btn-primary { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+.btn-primary:hover { background-color: #357ABD; border-color: #357ABD; }
+.btn-outline-secondary { color: var(--text-muted); border-color: var(--text-muted); background-color: transparent; }
+.btn-outline-secondary:hover { background-color: var(--text-muted); color: white; }
+/* Add other button styles (success, danger, etc.) if needed globally */
+
+
+/* --- Header Styles --- */
+.app-header {
+    background-color: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    box-shadow: var(--box-shadow);
+    padding: 0 1.5rem; /* Horizontal padding */
+    position: sticky; /* Optional: Make header sticky */
+    top: 0;
+    z-index: 1000; /* Ensure header is above other content */
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 60px; /* Or your desired height */
+    max-width: 1100px; /* Match container width */
+    margin: 0 auto; /* Center navbar content */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    gap: 1rem; /* Gap between flex items */
+}
+
+.navbar-brand {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--header-text); /* Use header text color */
+    text-decoration: none;
+}
+.navbar-brand:hover {
+    color: darken(var(--header-text), 10%);
+}
+
+.navbar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Spacing between nav items */
+    flex-wrap: wrap;
+}
+
+.nav-item {
+    /* Styles for list items if needed */
+}
+
+.nav-link {
+    color: var(--text-muted); /* Or var(--header-text) if you prefer */
+    text-decoration: none;
+    padding: 0.5rem 0.75rem; /* Padding around links */
+    border-radius: var(--border-radius);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    display: block; /* Ensure padding works */
+}
+.nav-link:hover,
+.nav-link.active { /* Add .active class via JS/backend for current page */
+    color: var(--primary-color); /* Highlight color */
+    background-color: rgba(74, 144, 226, 0.1); /* Subtle background on hover/active */
+}
+
+/* Style specific buttons in nav */
+.navbar-nav .btn {
+    /* Adjust button padding/margin if needed for alignment */
+    margin-left: 0.5rem;
+}
+.navbar-nav .nav-link.btn {
+    padding: 0.3rem 0.8rem; /* Ensure btn padding overrides nav-link padding if needed */
+}
+
+
+.navbar-auth {
+    /* Specific alignment/spacing if needed, often aligns to the right */
+    /* margin-left: auto; /* Pushes auth links to the right if needed */
+}
+
+.nav-user {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    margin-right: 1rem; /* Space before logout button */
+    white-space: nowrap;
+}
+
+
+/* Responsive adjustments for header */
+@media (max-width: 768px) {
+    .app-header {
+        padding: 0 1rem;
+        position: static; /* Or adjust sticky behavior */
+    }
+    .navbar {
+        flex-direction: column; /* Stack items vertically */
+        align-items: flex-start; /* Align to left */
+        min-height: auto;
+        padding: 0.75rem 0;
+    }
+    .navbar-nav {
+        width: 100%; /* Make nav lists take full width */
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+     .navbar-auth {
+         /* Align auth buttons/text as needed */
+         margin-top: 0.75rem;
+         width: 100%;
+         flex-direction: column;
+         align-items: flex-start;
+     }
+     .nav-user {
+        margin-bottom: 0.5rem;
+     }
+
+    .nav-link {
+        padding: 0.5rem 0; /* Adjust padding for vertical layout */
+        width: 100%;
+    }
+     .navbar-nav .btn {
+         margin-left: 0;
+         width: 100%; /* Make buttons full width? Or align-self: flex-start; */
+         text-align: center;
+         margin-top: 0.5rem;
+     }
+}

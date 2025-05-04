@@ -1,0 +1,186 @@
+<!-- START OF FILE views/projects/new.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css"> <!-- Link Global CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/theme.js" defer></script> <!-- For theme consistency -->
+
+    <title>Create New Project</title>
+
+    <style>
+        /* Inherits base styles, variables, buttons etc. from styles.css */
+
+        /* --- Page Specific Styles --- */
+        main.new-project-content {
+             max-width: 700px;
+             margin: 2rem auto;
+             padding: 1.5rem;
+             position: relative;
+        }
+
+        /* Theme switch placement (Copied for consistency) */
+        .theme-switch-container {
+            position: absolute; top: 1.5rem; right: 1.5rem; display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.9em; z-index: 10;
+        }
+        .theme-switch-container .switch { position: relative; display: inline-block; width: 36px; height: 18px; }
+        .theme-switch-container input { opacity: 0; width: 0; height: 0; }
+        .theme-switch-container .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 18px; }
+        .theme-switch-container .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        .theme-switch-container input:checked + .slider { background-color: var(--primary-color); }
+        .theme-switch-container input:checked + .slider:before { transform: translateX(18px); }
+        .theme-switch-container span i { color: var(--text-muted); font-size: 1.1em; }
+        body.dark-mode .theme-switch-container span i { color: var(--warning-color); }
+
+        /* --- Form Container Enhancements --- */
+        .form-container {
+            background-color: var(--card-background);
+            padding: 2rem 2.5rem; /* Slightly more padding */
+            border-radius: var(--border-radius);
+            /* Option 1: More pronounced shadow */
+            /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); */
+            /* Option 2: Slightly darker border + subtle shadow */
+             border: 1px solid var(--border-color); /* Keep base border */
+             box-shadow: var(--box-shadow);
+             transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+         /* Dark mode form container border */
+         body.dark-mode .form-container {
+            border-color: #444; /* Darker border for dark mode */
+         }
+
+
+        .form-container h1 {
+            font-size: 1.6em; font-weight: 600; color: var(--text-color);
+            margin-top: 0; margin-bottom: 1.5rem;
+            display: flex; align-items: center; gap: 0.6rem;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;
+        }
+        .form-container h1 i { color: var(--primary-color); }
+
+
+        /* --- Form Styles Enhancements --- */
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9em; color: var(--text-muted); }
+        input[type="text"], textarea {
+            width: 100%; padding: 0.75rem 1rem;
+            border: 1px solid var(--input-border); /* Ensure this var provides contrast */
+            border-radius: var(--border-radius);
+            background-color: var(--input-bg); color: var(--input-text);
+            font-size: 1em; box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+        }
+         /* Slightly darker border on inputs for more definition */
+         input[type="text"], textarea {
+            border-color: #ccc; /* Light mode */
+         }
+         body.dark-mode input[type="text"],
+         body.dark-mode textarea {
+            border-color: #555; /* Dark mode */
+         }
+
+         /* Placeholder styling */
+        input[type="text"]::placeholder,
+        textarea::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7; /* Make it slightly transparent */
+            font-style: italic;
+             font-size: 0.95em;
+        }
+        body.dark-mode input[type="text"]::placeholder,
+        body.dark-mode textarea::placeholder {
+             color: #888; /* Lighter grey for dark mode placeholder */
+        }
+
+
+        input:focus, textarea:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); outline: none; }
+        textarea { resize: vertical; min-height: 100px; }
+
+        .form-actions {
+            margin-top: 2rem; text-align: right; padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex; justify-content: flex-end; gap: 0.75rem;
+        }
+
+        /* --- Alerts --- */
+        .alert { padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid transparent; border-radius: var(--border-radius); box-shadow: var(--box-shadow); opacity: 1; transition: opacity 0.5s ease-out 4.5s; }
+        .alert[style*="opacity: 0"] { display: none; }
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        body.dark-mode .alert-danger { background-color: #5a1a1f; color: #f5c6cb; border-color: #f5c6cb;}
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            main.new-project-content { margin: 0.5rem auto; padding: 1rem; }
+            .theme-switch-container { top: 1rem; right: 1rem; }
+            .form-container { padding: 1.5rem; }
+             h1 { font-size: 1.4em; }
+        }
+         @media (max-width: 480px) {
+              main.new-project-content { margin: 0 auto; border-radius: 0; padding: 0.75rem; }
+              .form-container { padding: 1rem; }
+              .form-actions { flex-direction: column-reverse; align-items: stretch; }
+              .form-actions .btn { width: 100%; }
+         }
+
+    </style>
+</head>
+<body class="<%= locals.theme === 'dark' ? 'dark-mode' : '' %>">
+
+    <main class="new-project-content container">
+
+         <div class="theme-switch-container">
+            <span title="Toggle Theme"><i class="fas fa-sun"></i></span>
+             <label class="switch">
+                 <input type="checkbox" id="theme-toggle" <%= locals.theme === 'dark' ? 'checked' : '' %>>
+                 <span class="slider round"></span>
+             </label>
+             <span title="Toggle Theme"><i class="fas fa-moon"></i></span>
+         </div>
+
+
+         <div class="form-container">
+             <h1><i class="fas fa-folder-plus"></i> Create New Project</h1>
+
+             <% if (locals.error_msg && error_msg.length > 0) { %><div class="alert alert-danger" role="alert"><%= error_msg %></div><% } %>
+             <%# Display specific field errors if your backend provides them %>
+
+             <form action="/projects" method="POST">
+                 <div class="form-group">
+                     <label for="projectName">Project Name</label>
+                     <input type="text" id="projectName" name="name" required placeholder="e.g., Marketing Campaign Q3" value="<%= typeof formData !== 'undefined' ? formData.name : '' %>">
+                 </div>
+
+                 <div class="form-group">
+                     <label for="projectDescription">Description (Optional)</label>
+                     <textarea id="projectDescription" name="description" rows="4" placeholder="Add a brief description of the project's goals..."><%= typeof formData !== 'undefined' ? formData.description : '' %></textarea>
+                 </div>
+
+                 <div class="form-actions">
+                     <a href="/projects" class="btn btn-secondary">Cancel</a>
+                     <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Create Project</button>
+                 </div>
+             </form>
+         </div>
+
+          <div style="margin-top: 1.5rem; text-align: center;">
+              <a href="/projects" class="btn btn-sm btn-link"><i class="fas fa-arrow-left"></i> Back to Projects</a>
+          </div>
+
+    </main>
+
+    <!-- Alert fade-out JS -->
+     <script>
+         setTimeout(() => {
+             document.querySelectorAll('.alert')?.forEach(el => {
+                 el.style.opacity = '0';
+                 el.addEventListener('transitionend', () => el.style.display = 'none', { once: true });
+             });
+         }, 5000);
+     </script>
+
+</body>
+</html>
+<!-- END OF FILE views/projects/new.ejs -->

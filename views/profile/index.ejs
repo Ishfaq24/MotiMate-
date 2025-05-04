@@ -1,0 +1,159 @@
+<!-- START OF FILE views/profile/index.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/theme.js" defer></script>
+    <title><%= typeof title !== 'undefined' ? title : 'My Profile' %></title>
+    <style>
+        /* Inherit styles, add specifics */
+        main.profile-content {
+            max-width: 700px; /* Narrower container */
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        .profile-section {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .profile-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .profile-section h2 {
+            font-size: 1.4em;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .profile-info dt {
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+        }
+        .profile-info dd {
+            margin-left: 0;
+            margin-bottom: 1rem;
+            font-size: 1.1em;
+            word-wrap: break-word; /* Handle long emails */
+        }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-group input[type="password"],
+        .form-group input[type="text"], /* If adding other editable fields */
+        .form-group input[type="email"] {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            box-sizing: border-box; /* Include padding in width */
+            background-color: var(--input-bg, #fff); /* Use var if defined for dark mode */
+            color: var(--input-text, #333);
+        }
+        .form-group input:focus {
+             border-color: var(--primary-color);
+             outline: none;
+             box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 0, 123, 255), 0.25);
+         }
+        .btn-container { text-align: right; margin-top: 1.5rem; }
+
+        /* Alerts */
+        .alert { padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid transparent; border-radius: var(--border-radius); box-shadow: var(--box-shadow); opacity: 1; transition: opacity 0.5s ease-out 4.5s; }
+        .alert[style*="opacity: 0"] { display: none; }
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        body.dark-mode .alert-danger { background-color: #5a1a1f; color: #f5c6cb; border-color: #f5c6cb;}
+        body.dark-mode .alert-success { background-color: #1d4a2f; color: #c3e6cb; border-color: #c3e6cb;}
+    </style>
+</head>
+<body class="<%= locals.theme === 'dark' ? 'dark-mode' : '' %>">
+
+    <main class="profile-content container">
+
+        <h1><i class="fas fa-user-circle"></i> My Profile</h1>
+
+        <!-- Display Flash Messages -->
+        <% if (locals.error_msg && error_msg.length > 0) { %>
+            <div class="alert alert-danger" role="alert"><%= error_msg %></div> <!-- Use <%- for HTML in message -->
+        <% } %>
+        <% if (locals.success_msg && success_msg.length > 0) { %>
+            <div class="alert alert-success" role="alert"><%= success_msg %></div>
+        <% } %>
+
+        <!-- Profile Information Section -->
+        <section class="profile-section">
+            <h2><i class="fas fa-info-circle"></i> Account Information</h2>
+            <dl class="profile-info">
+                <% if (currentUser.name) { %>
+                    <dt>Name</dt>
+                    <dd><%= currentUser.name %></dd>
+                <% } %>
+                <% if (currentUser.email) { %>
+                    <dt>Email</dt>
+                    <dd><%= currentUser.email %></dd>
+                <% } %>
+                <!-- Add other display fields as needed -->
+                <% if (currentUser.createdAt) { %>
+                    <dt>Member Since</dt>
+                    <dd><%= new Date(currentUser.createdAt).toLocaleDateString() %></dd>
+                <% } %>
+            </dl>
+             <!-- Link to edit basic info if needed -->
+             <!-- <a href="/profile/edit" class="btn btn-sm btn-outline-secondary">Edit Info</a> -->
+        </section>
+
+        <!-- Change Password Section -->
+        <section class="profile-section">
+            <h2><i class="fas fa-key"></i> Change Password</h2>
+            <form action="/profile/password" method="POST">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" name="currentPassword" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" name="newPassword" class="form-control" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required minlength="6">
+                </div>
+                 <!-- Optional: Add CSRF token here if using csurf -->
+                 <!-- <input type="hidden" name="_csrf" value="< csrfToken >"> -->
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Password</button>
+                </div>
+            </form>
+        </section>
+
+         <!-- Navigation Back -->
+         <div style="margin-top: 2rem; text-align: center;">
+             <a href="/dashboard" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left "></i> Back to Dashboard</a>
+         </div>
+
+    </main>
+
+     <!-- Alert fade-out JS -->
+     <script>
+         setTimeout(() => {
+             document.querySelectorAll('.alert')?.forEach(el => {
+                 el.style.opacity = '0';
+                 el.addEventListener('transitionend', () => el.style.display = 'none', { once: true });
+             });
+         }, 5000);
+     </script>
+
+</body>
+</html>
+<!-- END OF FILE views/profile/index.ejs -->

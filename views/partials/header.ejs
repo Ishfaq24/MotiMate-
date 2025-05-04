@@ -1,0 +1,32 @@
+<!-- START OF FILE views/partials/header.ejs -->
+<%# Common application header with navigation. %>
+<%# Uses `locals.currentUser` passed from middleware to check login status. %>
+<header class="app-header"> <%# Ensure .app-header styles are defined in styles.css %>
+    <nav class="navbar"> <%# Ensure .navbar styles are defined in styles.css %>
+        <a href="<%= locals.currentUser ? '/dashboard' : '/' %>" class="navbar-brand">YourAppName</a> <%# Replace YourAppName; Ensure .navbar-brand styles exist %>
+        <ul class="navbar-nav"> <%# Ensure .navbar-nav styles exist %>
+            <% if (locals.currentUser) { %>
+                <%# Links shown only when logged in %>
+                <li class="nav-item"><a href="/dashboard" class="nav-link">Dashboard</a></li>
+                <li class="nav-item"><a href="/tasks" class="nav-link">Tasks</a></li> <%# Assuming you have a tasks route %>
+                <li class="nav-item"><a href="/projects" class="nav-link">Projects</a></li>
+            <% } else { %>
+                 <%# Links shown only when logged out (optional) %>
+                 <%# <li class="nav-item"><a href="/features" class="nav-link">Features</a></li> %>
+                 <%# <li class="nav-item"><a href="/about" class="nav-link">About</a></li> %>
+            <% } %>
+        </ul>
+        <ul class="navbar-nav navbar-auth"> <%# Ensure .navbar-auth styles exist (e.g., for alignment/spacing) %>
+             <% if (locals.currentUser) { %>
+                <%# User info and Logout button %>
+                <li class="nav-item"><span class="nav-user">Hi, <%= currentUser.username %>!</span></li> <%# Ensure .nav-user styles exist %>
+                <li class="nav-item"><a href="/auth/logout" class="nav-link btn btn-sm btn-outline-secondary">Logout</a></li> <%# Make sure button styles are loaded %>
+             <% } else { %>
+                 <%# Login and Register buttons %>
+                 <li class="nav-item"><a href="/auth/login" class="nav-link">Login</a></li>
+                 <li class="nav-item"><a href="/auth/register" class="nav-link btn btn-sm btn-primary">Register</a></li> <%# Make sure button styles are loaded %>
+             <% } %>
+        </ul>
+    </nav>
+</header>
+<!-- END OF FILE views/partials/header.ejs -->
