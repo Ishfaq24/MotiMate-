@@ -63,18 +63,17 @@ Visit [http://localhost:5000](http://localhost:5000) in your browser.
 
 ## 📸 Screenshots
 
+### 🔐 Login Page
+![Login Page](assets/signup.png)
 
+### 📊 Dashboard
+![Dashboard](assets/dashboard.png)
 
-- **Login Page**  
- ![Login Page](assets/login.png)
-
-- **Dashboard**  
-  (assets/dashboard.png)
-
-- **Task Manager**  
-  (assets/task_manager.png)
+### ✅ Task Manager
+![Task Manager](assets/task_manager.png)
 
 ---
+
 
 ## 🤝 Contributing
 
