@@ -66,13 +66,13 @@ Visit [http://localhost:5000](http://localhost:5000) in your browser.
 
 
 - **Login Page**  
-  `assets/login.png`
+ (assets/signup.png)
 
 - **Dashboard**  
-  `assets/dashboard.png`
+  (assets/dashboard.png)
 
 - **Task Manager**  
-  `assets/task_manager.png`
+  (assets/task_manager.png)
 
 ---
 
