@@ -31,32 +31,25 @@ const TaskSchema = new mongoose.Schema({
     enum: ['none', 'daily', 'weekly', 'monthly', 'yearly'],
     default: 'none'
   },
-  labels: [String], // Array of strings for labels
-  project: { // Link to a Project
+  labels: [String], 
+  project: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project' // Refers to the 'Project' model
+    ref: 'Project' 
   },
-  createdBy: { // Link to the User who created the task
+  createdBy: { 
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Refers to the 'User' model
+    ref: 'User', 
     required: true
   },
-  // Note: Your original schema had assignedTo as an array of objects.
-  // Let's keep that structure.
+  
   assignedTo: [{
-    user: { // Link to the User it's assigned to
+    user: { 
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
-    // You might not need status here if 'completed' covers it,
-    // but keeping it if you have specific workflow needs.
-    // status: {
-    //   type: String,
-    //   enum: ['pending', 'in-progress', 'completed'],
-    //   default: 'pending'
-    // }
+    
   }],
-  // Comments structure from your earlier code
+  
   comments: [{
     user: { // User who made the comment
       type: mongoose.Schema.Types.ObjectId,
