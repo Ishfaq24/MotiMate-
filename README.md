@@ -66,7 +66,7 @@ Visit [http://localhost:5000](http://localhost:5000) in your browser.
 
 
 - **Login Page**  
- (assets/signup.png)
+ ![Login Page](assets/login.png)
 
 - **Dashboard**  
   (assets/dashboard.png)
