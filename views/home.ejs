@@ -1,15 +1,12 @@
-<!-- START OF FILE views/home.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Link to your CSS file -->
     <link rel="stylesheet" href="/css/styles.css">
     <title><%= typeof title !== 'undefined' ? title : 'Todoist Clone' %></title>
 </head>
 <body>
-    <!-- Optional: Include a header partial if you have one -->
     <%# include('../partials/header') %>
 
     <div class="container">
@@ -19,13 +16,10 @@
         <p>Please choose an option:</p>
         <a href="/auth/login" class="btn btn-primary">Login</a>
         <a href="/auth/register" class="btn btn-secondary">Register</a>
-        <!-- Make sure your CSS defines .btn, .btn-primary, .btn-secondary -->
     </div>
 
-    <!-- Optional: Include a footer partial if you have one -->
     <%# include('../partials/footer') %>
 
-    <!-- Link to any general client-side JS if needed -->
     <!-- <script src="/js/main.js"></script> -->
 </body>
 </html>
