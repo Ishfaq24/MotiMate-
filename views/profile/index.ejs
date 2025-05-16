@@ -83,7 +83,6 @@
 
         <h1><i class="fas fa-user-circle"></i> My Profile</h1>
 
-        <!-- Display Flash Messages -->
         <% if (locals.error_msg && error_msg.length > 0) { %>
             <div class="alert alert-danger" role="alert"><%= error_msg %></div> <!-- Use <%- for HTML in message -->
         <% } %>
@@ -91,7 +90,6 @@
             <div class="alert alert-success" role="alert"><%= success_msg %></div>
         <% } %>
 
-        <!-- Profile Information Section -->
         <section class="profile-section">
             <h2><i class="fas fa-info-circle"></i> Account Information</h2>
             <dl class="profile-info">
@@ -103,14 +101,11 @@
                     <dt>Email</dt>
                     <dd><%= currentUser.email %></dd>
                 <% } %>
-                <!-- Add other display fields as needed -->
                 <% if (currentUser.createdAt) { %>
                     <dt>Member Since</dt>
                     <dd><%= new Date(currentUser.createdAt).toLocaleDateString() %></dd>
                 <% } %>
             </dl>
-             <!-- Link to edit basic info if needed -->
-             <!-- <a href="/profile/edit" class="btn btn-sm btn-outline-secondary">Edit Info</a> -->
         </section>
 
         <!-- Change Password Section -->
