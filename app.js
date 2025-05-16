@@ -1,4 +1,3 @@
-// --- START OF FILE app.js ---
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -12,19 +11,14 @@ const flash = require('connect-flash');
 const methodOverride = require('method-override');
 
 
-const User = require('./models/user'); // Ensure consistent casing with the file name
+const User = require('./models/user'); 
 
-// Initialize app
 const app = express();
 
-// Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/todoist')
 .then(() => console.log('MongoDB connected successfully.'))
 .catch(err => {
-    console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
     console.error('!!! MongoDB connection error:', err.message); // Log specific message
-    console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-    process.exit(1); // Exit if DB connection fails
 });
 
 // Middleware
@@ -64,18 +58,14 @@ passport.use(new LocalStrategy(
     { usernameField: 'email' },
     async (email, password, done) => {
         try {
-            console.log(`Attempting login for email: ${email}`);
             const user = await User.findOne({ email: email.toLowerCase() });
             if (!user) {
-                console.log(`Login failed: No user found for ${email}`);
                 return done(null, false, { message: 'Incorrect email or password.' });
             }
             const isMatch = await user.comparePassword(password);
             if (!isMatch) {
-                console.log(`Login failed: Password mismatch for ${email}`);
                 return done(null, false, { message: 'Incorrect email or password.' });
             }
-            console.log(`Login successful for ${email}`);
             return done(null, user);
         } catch (err) {
             console.error('Error during Passport authentication:', err);
@@ -107,12 +97,9 @@ app.use((req, res, next) => {
     next();
 });
 
-// --- Routes --- (Ensure these files exist in ./routes/ and export routers)
 app.use('/auth', require('./routes/auth'));
 app.use('/tasks', require('./routes/tasks'));
-// --- FIX: Corrected casing if filename is projects.js ---
 app.use('/projects', require('./routes/projects'));
-// --- END FIX ---
 app.use('/dashboard', require('./routes/dashboard'));
 app.use('/api', require('./routes/api'));
 app.use('/profile', require('./routes/profile'));
@@ -126,13 +113,10 @@ app.get('/', (req, res) => {
     }
 });
 
-// --- Error Handling ---
-// 404 Not Found Handler (after all routes)
 app.use((req, res, next) => {
     res.status(404).render('error/404', { title: 'Page Not Found', message: 'Sorry, the page you are looking for does not exist.' }); // Needs views/error/404.ejs
 });
 
-// General Error Handler (last middleware)
 app.use((err, req, res, next) => {
     console.error("Unhandled Error:", err.stack || err);
     const statusCode = err.status || 500;
@@ -142,7 +126,6 @@ app.use((err, req, res, next) => {
             message: err.message || 'An unexpected error occurred.'
         });
     }
-    // Otherwise render HTML error page
     res.status(statusCode).render('error/500', { // Needs views/error/500.ejs
         title: 'Server Error',
         message: process.env.NODE_ENV === 'production' ? 'Something went wrong on our end.' : err.message,
@@ -156,31 +139,24 @@ const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
 });
 
-// --- Socket.io Setup ---
 const io = socketio(server);
-// Make io accessible to routes (optional, but useful for emitting from routes)
 app.set('socketio', io);
 require('./config/socket')(io); // Load socket event handlers
 
-// --- Cron Job for Recurring Tasks ---
 if (process.env.NODE_ENV !== 'test') {
     try {
-        const taskController = require('./controllers/taskController'); // Needs ./controllers/taskController.js
-        // Check if controller and function exist and are exported
+        const taskController = require('./controllers/taskController'); 
         if (taskController && typeof taskController.processRecurringTasks === 'function') {
-            cron.schedule('0 0 * * *', () => { // Daily at midnight UTC
-                console.log('Running recurring tasks cron job...');
+            cron.schedule('0 0 * * *', () => { 
                 taskController.processRecurringTasks()
                     .then(() => console.log('Recurring tasks processed successfully.'))
                     .catch(err => console.error('Error running recurring tasks cron job:', err));
             }, { scheduled: true, timezone: "UTC" });
             console.log('Recurring tasks cron job scheduled.');
         } else {
-            // Log clearly if the function isn't found or exported
             console.warn('Recurring tasks function "processRecurringTasks" not found or not exported from taskController. Cron job not scheduled.');
         }
     } catch (error) {
-        // Log error if the controller file itself can't be loaded
         console.error('Failed to load taskController for cron job:', error);
     }
 } else {
@@ -188,4 +164,3 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 module.exports = app; // Export for potential testing
-// --- END OF FILE app.js ---
